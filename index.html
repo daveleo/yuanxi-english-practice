@@ -293,7 +293,7 @@ body.timed #playLine{display:block}
 }
 </style>
 </head>
-<body class="show-da show-zh">
+<body>
 
 <header class="topbar">
   <div class="wrap">
@@ -318,7 +318,7 @@ body.timed #playLine{display:block}
     <div class="focus-tr" id="focusTr"></div>
   </div>
   <div class="focus-nav">
-    <button class="navbtn" id="playLine">Play line</button>
+    <button class="navbtn" id="playLine">▶ Play line</button>
     <button class="navbtn" id="prev">Back</button>
     <button class="navbtn primary" id="next">Next</button>
   </div>
@@ -824,9 +824,17 @@ function markActive(i){
 function followAudio(){
   if (!timings) return;
   var t = audio.currentTime;
-  if (repeat && activeLine >= 0 && t >= lineEnd(activeLine)){
-    audio.currentTime = timings[activeLine].start;
-    return;
+  if (activeLine >= 0 && t >= lineEnd(activeLine)){
+    if (repeat){
+      audio.currentTime = timings[activeLine].start;
+      return;
+    }
+    if (focusEl.classList.contains('on')){
+      /* line-by-line practice: play only the line that's on screen, then stop */
+      audio.pause();
+      audio.currentTime = timings[activeLine].start;
+      return;
+    }
   }
   var i = -1;
   for (var k = 0; k < timings.length; k++){
@@ -853,6 +861,7 @@ var focusEn = document.getElementById('focusEn');
 var focusTr = document.getElementById('focusTr');
 var counter = document.getElementById('counter');
 var bar = document.getElementById('bar');
+var playLineBtn = document.getElementById('playLine');
 
 function openFocus(i){
   focusIndex = i;
@@ -860,6 +869,11 @@ function openFocus(i){
   renderFocus();
 }
 function closeFocus(){ focusEl.classList.remove('on'); }
+
+function updatePlayLineBtn(){
+  var playingThisLine = timings && activeLine === focusIndex && !audio.paused;
+  playLineBtn.textContent = playingThisLine ? '⏸ Pause' : '▶ Play line';
+}
 
 function renderFocus(){
   if (!focusEl.classList.contains('on')) return;
@@ -874,6 +888,7 @@ function renderFocus(){
   bar.style.width = ((focusIndex + 1) / flat.length * 100) + '%';
   document.getElementById('prev').disabled = focusIndex === 0;
   document.getElementById('next').textContent = focusIndex === flat.length - 1 ? 'Done' : 'Next';
+  updatePlayLineBtn();
 }
 
 document.getElementById('prev').onclick = function(){
@@ -882,7 +897,11 @@ document.getElementById('prev').onclick = function(){
 document.getElementById('next').onclick = function(){
   if (focusIndex < flat.length - 1){ focusIndex++; renderFocus(); } else { closeFocus(); }
 };
-document.getElementById('playLine').onclick = function(){ playLine(focusIndex); };
+playLineBtn.onclick = function(){
+  if (!timings) return;
+  if (!audio.paused && activeLine === focusIndex){ audio.pause(); }
+  else { playLine(focusIndex); }
+};
 document.getElementById('closeFocus').onclick = closeFocus;
 document.addEventListener('keydown', function(e){
   if (!focusEl.classList.contains('on')) return;
@@ -946,12 +965,13 @@ function loadAudio(song){
 playBtn.onclick = function(){
   if (audio.paused){ audio.play().catch(showAudioError); } else { audio.pause(); }
 };
-audio.onplay = function(){ playIcon.setAttribute('d', ICON_PAUSE); playBtn.classList.add('playing'); };
-audio.onpause = function(){ playIcon.setAttribute('d', ICON_PLAY); playBtn.classList.remove('playing'); };
+audio.onplay = function(){ playIcon.setAttribute('d', ICON_PAUSE); playBtn.classList.add('playing'); updatePlayLineBtn(); };
+audio.onpause = function(){ playIcon.setAttribute('d', ICON_PLAY); playBtn.classList.remove('playing'); updatePlayLineBtn(); };
 audio.onended = function(){
   playIcon.setAttribute('d', ICON_PLAY);
   playBtn.classList.remove('playing');
   markActive(-1);
+  updatePlayLineBtn();
 };
 audio.onloadedmetadata = updateDuration;
 audio.ondurationchange = updateDuration;
