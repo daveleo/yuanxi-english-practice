@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f6f9">
+<title>English presentation — pick your music video</title>
+<style>
+/* ---------------------------------------------------------------
+   Liner Notes — English presentation practice
+   Single file. No build step, no fonts to download, no backend.
+   Treated like the printed insert tucked inside a record sleeve:
+   a track list of lines to say, with a little turntable to say them to.
+   --------------------------------------------------------------- */
+
+:root{
+  --ink:#1c1a15;
+  --ink-soft:#5b5648;
+  --ink-faint:#948e7c;
+  --paper:#f5f1e7;
+  --card:#fffdf8;
+  --rule:#e4dfd0;
+  --accent:#2452b0;
+  --accent-2:#e7a91b;
+  --tint:#edf1fa;
+  --shadow:0 1px 2px rgba(28,26,21,.06), 0 10px 28px rgba(28,26,21,.08);
+
+  --f-display: ui-rounded, "SF Pro Rounded", "Avenir Next", "Trebuchet MS", "Noto Sans", sans-serif;
+  --f-body: "Avenir Next", system-ui, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --f-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  --f-cjk: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", var(--f-body);
+
+  --cue-size: 1.25rem;
+  --pad: 20px;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-body);
+  line-height:1.5;
+  transition:background-color .5s ease;
+  padding-bottom:128px; /* room for the two-row deck */
+}
+body.tinted{background:var(--tint)}
+
+.wrap{max-width:760px;margin:0 auto;padding:0 var(--pad)}
+
+/* ---------- top bar: a row of cassette-spine tabs ----------- */
+.topbar{
+  position:sticky;top:0;z-index:30;
+  background:var(--paper);
+  border-bottom:1px solid var(--rule);
+  transition:background-color .5s ease;
+  padding-top:env(safe-area-inset-top);
+}
+body.tinted .topbar{background:var(--tint)}
+.eyebrow{
+  font-family:var(--f-mono);
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-faint);
+  padding:10px 0 8px;
+}
+.songs{display:flex;gap:9px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.songs::-webkit-scrollbar{display:none}
+.song-tab{
+  flex:0 0 auto;
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--f-display);
+  font-size:13.5px;font-weight:700;
+  color:var(--ink-soft);
+  background:var(--card);
+  border:1px solid var(--rule);
+  border-top:3px solid var(--tab-accent, var(--rule));
+  border-radius:10px;
+  padding:8px 14px 7px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background-color .2s, color .2s, border-color .2s, transform .15s;
+}
+.song-tab:hover{transform:translateY(-1px)}
+.song-tab .swatch{width:8px;height:8px;border-radius:50%;background:var(--tab-accent, var(--ink-faint));flex:0 0 auto}
+.song-tab[aria-selected="true"]{
+  background:var(--ink);border-color:var(--ink);color:#fff;
+}
+.song-tab[aria-selected="true"] .swatch{background:var(--tab-accent)}
+
+/* ---------- song header ------------------------------------ */
+.head{padding:32px 0 6px}
+.kicker{
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);
+  display:flex;align-items:center;gap:9px;
+}
+.kicker .swatch{width:8px;height:8px;border-radius:50%;background:var(--accent-2);flex:0 0 auto}
+.kicker::after{content:"";flex:1;height:1px;background:var(--rule)}
+h1{
+  font-family:var(--f-display);
+  font-size:clamp(2.1rem,8vw,3.4rem);
+  line-height:1.02;
+  letter-spacing:-.03em;
+  font-weight:800;
+  margin:14px 0 6px;
+}
+.artist{font-family:var(--f-display);font-size:1.05rem;font-weight:600;color:var(--ink-soft);margin:0 0 20px}
+.artist .runtime{font-family:var(--f-mono);font-size:.7rem;font-weight:700;letter-spacing:.04em;color:var(--ink-faint)}
+
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.linkbtn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--f-display);font-size:.95rem;font-weight:600;
+  text-decoration:none;color:var(--ink);
+  background:var(--card);border:1px solid var(--rule);border-radius:12px;
+  padding:11px 15px;box-shadow:var(--shadow);
+  cursor:pointer;
+}
+.linkbtn:hover{border-color:var(--accent);color:var(--accent)}
+.linkbtn .dot{width:9px;height:9px;border-radius:50%;background:var(--accent-2)}
+
+/* a torn/perforated edge, like tearing the insert from its sleeve */
+.tear{
+  height:1px;margin:0 0 22px;
+  background-image:linear-gradient(to right, var(--rule) 60%, transparent 0%);
+  background-size:10px 1px;background-repeat:repeat-x;
+}
+
+/* ---------- controls --------------------------------------- */
+.controls{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  padding:0 0 14px;
+  margin-bottom:26px;
+}
+.ctl-label{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-right:2px}
+.toggle{
+  font-family:var(--f-display);font-size:.9rem;font-weight:600;
+  background:var(--card);color:var(--ink-soft);
+  border:1px solid var(--rule);border-radius:999px;
+  padding:7px 13px;cursor:pointer;
+}
+.toggle[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.spacer{flex:1}
+
+/* ---------- cues, set like a lyric-and-translation insert --- */
+.block{margin:0 0 26px}
+.cue{
+  display:grid;grid-template-columns:30px 1fr;gap:0 14px;
+  padding:9px 0;cursor:pointer;border-radius:10px;
+}
+.cue:hover .num{color:var(--accent)}
+.cue:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.num{
+  font-family:var(--f-mono);font-size:11px;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums;
+  padding-top:.45em;user-select:none;transition:color .15s;
+}
+.en{
+  font-size:var(--cue-size);
+  line-height:1.45;
+  margin:0;
+  letter-spacing:-.01em;
+}
+.tr{
+  grid-column:2;
+  display:none;
+  margin-top:7px;
+  padding-left:13px;
+  border-left:2px solid var(--rule);
+}
+.cue.open .tr,
+body.show-da .tr.da,
+body.show-zh .tr.zh{display:block}
+.tr p{margin:0;font-size:calc(var(--cue-size) * .8);line-height:1.5;color:var(--ink-soft)}
+.tr.zh p{font-family:var(--f-cjk);letter-spacing:.01em}
+.tr + .tr{margin-top:5px}
+.tag{
+  font-family:var(--f-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);display:block;margin-bottom:2px;
+}
+.hint{
+  font-size:.85rem;color:var(--ink-faint);
+  margin:0 0 20px;padding-left:44px;
+}
+
+/* ---------- focus (teleprompter / "on stage") --------------- */
+.focus{
+  position:fixed;inset:0;z-index:60;
+  background:var(--card);
+  display:none;flex-direction:column;
+  padding:calc(env(safe-area-inset-top) + 16px) var(--pad) calc(env(safe-area-inset-bottom) + 16px);
+}
+.focus.on{display:flex}
+.focus-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.counter{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;color:var(--ink-faint)}
+.close{
+  border:1px solid var(--rule);background:var(--card);border-radius:999px;
+  font-family:var(--f-display);font-weight:600;font-size:.9rem;padding:7px 14px;cursor:pointer;color:var(--ink);
+}
+.focus-body{flex:1;display:flex;flex-direction:column;justify-content:center;overflow-y:auto;padding:20px 0}
+.focus-en{
+  font-family:var(--f-display);font-weight:700;
+  font-size:clamp(1.6rem,5.2vw,2.6rem);
+  line-height:1.25;letter-spacing:-.02em;margin:0;
+}
+.focus-tr{margin-top:22px;padding-left:16px;border-left:3px solid var(--accent-2)}
+.focus-tr p{margin:0 0 8px;font-size:clamp(1rem,2.6vw,1.2rem);color:var(--ink-soft)}
+.focus-tr p:last-child{margin-bottom:0}
+.focus-tr p.zh{font-family:var(--f-cjk)}
+.focus-nav{display:flex;gap:10px}
+.navbtn{
+  flex:1;font-family:var(--f-display);font-weight:700;font-size:1rem;
+  padding:16px;border-radius:14px;border:1px solid var(--rule);
+  background:var(--card);color:var(--ink);cursor:pointer;
+}
+.navbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.navbtn:disabled{opacity:.35;cursor:default}
+.progress{height:3px;background:var(--rule);border-radius:2px;overflow:hidden;margin:12px 0 14px}
+.progress i{display:block;height:100%;background:linear-gradient(to right, var(--accent), var(--accent-2));width:0;transition:width .2s}
+
+/* ---------- audio deck --------------------------------------- */
+.audiobar{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  background:var(--card);
+  border-top:1px solid var(--rule);
+  padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom));
+  box-shadow:0 -6px 24px rgba(28,26,21,.08);
+}
+.arow1{display:flex;align-items:center;gap:13px}
+.arow2{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;justify-content:flex-end}
+
+/* the turntable: grooves spin on ::before, label + icon stay still */
+.play{
+  width:50px;height:50px;flex:0 0 50px;border-radius:50%;position:relative;
+  background:var(--ink);border:none;color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shadow);
+}
+.play::before{
+  content:"";position:absolute;inset:3px;border-radius:50%;
+  background:repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.14) 0 1px, transparent 1px 3.2px);
+  animation:spin 3s linear infinite;animation-play-state:paused;
+}
+.play.playing::before{animation-play-state:running}
+.play::after{
+  content:"";position:absolute;width:17px;height:17px;border-radius:50%;
+  background:var(--accent);box-shadow:inset 0 0 0 2px var(--card);
+}
+.play svg{position:relative;z-index:2;width:14px;height:14px;fill:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.abody{flex:1;min-width:0}
+.atop{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.atitle{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atime{font-family:var(--f-mono);font-size:11px;color:var(--ink-faint);flex:0 0 auto;font-variant-numeric:tabular-nums}
+.atime i{font-style:normal;opacity:.6;margin:0 2px}
+.seek{width:100%;display:block;accent-color:var(--accent)}
+.seek:disabled{opacity:.4}
+.speed{
+  font-family:var(--f-mono);font-size:12px;font-weight:600;
+  background:var(--paper);border:1px solid var(--rule);border-radius:9px;
+  padding:9px 10px;cursor:pointer;color:var(--ink);flex:0 0 auto;
+  display:inline-flex;align-items:center;gap:5px;text-decoration:none;
+}
+.speed[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.err{color:#b4341f;font-size:.8rem;font-family:var(--f-body);letter-spacing:0;text-transform:none}
+
+footer{padding:10px 0 40px;color:var(--ink-faint);font-size:.8rem}
+
+/* ---------- timed playback (needs <song>.json) -------------- */
+.cue.playing{background:var(--tint);box-shadow:inset 3px 0 0 var(--accent);}
+body.timed .num{cursor:pointer}
+body.timed .num:hover{color:var(--accent);text-decoration:underline}
+.cue.playing .num{color:var(--accent);font-weight:700}
+body.timed .num::before{content:"\25B8 ";opacity:0;transition:opacity .15s}
+body.timed .cue:hover .num::before,
+body.timed .cue.playing .num::before{opacity:1}
+#playLine{display:none}
+body.timed #playLine{display:block}
+
+@media (min-width:700px){
+  :root{--cue-size:1.35rem;--pad:32px}
+  .cue{grid-template-columns:40px 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important}
+}
+@media print{
+  .topbar,.audiobar,.links,.controls,.focus,.hint,footer,.tear{display:none !important}
+  body{background:#fff;padding:0}
+  .tr{display:block !important}
+}
+</style>
+</head>
+<body class="show-da show-zh">
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="eyebrow">English homework · pick a track</div>
+    <div class="songs" role="tablist" id="songs"></div>
+  </div>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<footer class="wrap">Tap a line for Danish and Chinese. Press play, then tap a line number to jump straight to it.</footer>
+
+<!-- teleprompter -->
+<div class="focus" id="focus" role="dialog" aria-modal="true" aria-label="Practice one line at a time">
+  <div class="focus-top">
+    <span class="counter" id="counter">1 / 1</span>
+    <button class="close" id="closeFocus">Close</button>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="focus-body">
+    <p class="focus-en" id="focusEn"></p>
+    <div class="focus-tr" id="focusTr"></div>
+  </div>
+  <div class="focus-nav">
+    <button class="navbtn" id="playLine">Play line</button>
+    <button class="navbtn" id="prev">Back</button>
+    <button class="navbtn primary" id="next">Next</button>
+  </div>
+</div>
+
+<!-- audio deck -->
+<div class="audiobar">
+  <div class="wrap">
+    <div class="arow1">
+      <button class="play" id="play" aria-label="Play the recording">
+        <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="abody">
+        <div class="atop">
+          <span class="atitle" id="atitle">Pronunciation</span>
+          <span class="atime"><b id="curTime">0:00</b><i>/</i><span id="durTime">0:00</span></span>
+        </div>
+        <input class="seek" id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Position in the recording" disabled>
+      </div>
+    </div>
+    <div class="arow2">
+      <button class="speed" id="loop" aria-pressed="false" title="Repeat the line that is playing">↻ Line</button>
+      <button class="speed" id="repeatSong" aria-pressed="false" title="Repeat the whole song">⟲ Song</button>
+      <button class="speed" id="speed">1×</button>
+      <a class="speed" id="download" download title="Download this recording">⬇ Save</a>
+    </div>
+  </div>
+</div>
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+/* =================================================================
+   CONTENT
+   audio: the mp3 file name, in the same folder as this page.
+   ================================================================= */
+var DATA = [
+{
+  id:"still-standing",
+  tab:"I'm Still Standing",
+  title:"I'm Still Standing",
+  artist:"Elton John",
+  video:"https://youtu.be/ZHwVBirqD2s?t=70",
+  audio:"still-standing.mp3",
+  accent:"#1f5fbf", accent2:"#e8b21f", tint:"#eef3fb",
+  blocks:[
+    [
+      {en:"Hello.",
+       da:"Hej.",
+       zh:"大家好。"},
+      {en:"Today I am presenting the song “I’m Still Standing” by Elton John.",
+       da:"I dag vil jeg præsentere sangen “I’m Still Standing” af Elton John.",
+       zh:"今天我要介绍埃尔顿·约翰的歌曲《I’m Still Standing》。"}
+    ],
+    [
+      {en:"I chose this song because it is fun, energetic, and easy to remember.",
+       da:"Jeg valgte den her sang, fordi den er sjov, energisk og nem at huske.",
+       zh:"我选这首歌，是因为它有趣、有活力，而且很容易记住。"},
+      {en:"I also like the message of the song.",
+       da:"Jeg kan også godt lide sangens budskab.",
+       zh:"我也喜欢这首歌想表达的意思。"},
+      {en:"The song is about being strong after a difficult time.",
+       da:"Sangen handler om at være stærk efter en svær tid.",
+       zh:"这首歌讲的是：在经历了一段艰难的时期之后，依然坚强。"}
+    ],
+    [
+      {en:"First, look at the colours in the video.",
+       da:"Først skal I kigge på farverne i videoen.",
+       zh:"首先，请看视频里的颜色。"},
+      {en:"The video has many bright colours.",
+       da:"Videoen har mange stærke farver.",
+       zh:"视频里有很多明亮的颜色。"},
+      {en:"We can see blue sky, yellow sun, colourful clothes, and the beach.",
+       da:"Vi kan se blå himmel, gul sol, farverigt tøj og stranden.",
+       zh:"我们可以看到蓝色的天空、黄色的太阳、色彩鲜艳的衣服，还有海滩。"}
+    ],
+    [
+      {en:"I think the bright colours make the video feel happy and full of energy.",
+       da:"Jeg synes, at de stærke farver får videoen til at virke glad og fuld af energi.",
+       zh:"我觉得这些明亮的颜色让视频显得开心、充满活力。"},
+      {en:"The song is about a difficult relationship, but the video does not look sad.",
+       da:"Sangen handler om et svært forhold, men videoen ser ikke trist ud.",
+       zh:"这首歌讲的是一段不顺利的感情，但视频看起来一点也不悲伤。"}
+    ],
+    [
+      {en:"The second thing is Elton John’s clothes and glasses.",
+       da:"Det andet, jeg vil tale om, er Elton Johns tøj og briller.",
+       zh:"第二点是埃尔顿·约翰的衣服和眼镜。"},
+      {en:"He wears many different clothes and funny, colourful glasses.",
+       da:"Han har mange forskellige slags tøj på og sjove, farverige briller.",
+       zh:"他穿着各种不同的衣服，还戴着有趣又花哨的眼镜。"},
+      {en:"He looks confident and he has a lot of energy.",
+       da:"Han ser selvsikker ud, og han har masser af energi.",
+       zh:"他看起来很自信，而且非常有活力。"}
+    ],
+    [
+      {en:"I think this shows that he is happy to be himself.",
+       da:"Jeg tror, det viser, at han er glad for at være sig selv.",
+       zh:"我认为这说明他很乐于做自己。"},
+      {en:"He does not want to hide.",
+       da:"Han vil ikke gemme sig.",
+       zh:"他不想躲起来。"}
+    ],
+    [
+      {en:"The mood of the video is positive, happy, and strong.",
+       da:"Stemningen i videoen er positiv, glad og stærk.",
+       zh:"视频的气氛是积极、快乐、有力量的。"},
+      {en:"The message is that a person can have a difficult time, but they can get better and move on.",
+       da:"Budskabet er, at man kan have en svær tid, men man kan få det bedre og komme videre.",
+       zh:"它想说的是：一个人可能会经历困难的时期，但仍然可以好起来，继续往前走。"}
+    ],
+    [
+      {en:"In the video, Elton John is dancing, smiling, and having fun.",
+       da:"I videoen danser Elton John, smiler og har det sjovt.",
+       zh:"在视频里，埃尔顿·约翰又跳舞又微笑，玩得很开心。"},
+      {en:"He wants to show: “I had a difficult time, but I am still here. I am strong, and I can enjoy my life.”",
+       da:"Han vil vise: “Jeg har haft en svær tid, men jeg er her stadig. Jeg er stærk, og jeg kan nyde mit liv.”",
+       zh:"他想表达：“我经历过困难的时期，但我还在这里。我很坚强，我可以享受我的生活。”"}
+    ],
+    [
+      {en:"That is why I think “I’m Still Standing” is a positive and powerful song.",
+       da:"Det er derfor, jeg synes, at “I’m Still Standing” er en positiv og stærk sang.",
+       zh:"这就是为什么我认为《I’m Still Standing》是一首积极而有力量的歌。"}
+    ]
+  ]
+},
+{
+  id:"radioactive",
+  tab:"Radioactive",
+  title:"Radioactive",
+  artist:"Imagine Dragons",
+  video:"https://youtu.be/ktvTqknDobU?t=130",
+  audio:"radioactive.mp3",
+  accent:"#7b4dd6", accent2:"#ff5ea8", tint:"#f2eefb",
+  blocks:[
+    [
+      {en:"Hello.",
+       da:"Hej.",
+       zh:"大家好。"},
+      {en:"Today I am presenting the song “Radioactive” by Imagine Dragons.",
+       da:"I dag vil jeg præsentere sangen “Radioactive” af Imagine Dragons.",
+       zh:"今天我要介绍 Imagine Dragons 的歌曲《Radioactive》。"},
+      {en:"I chose this song because I like the music video.",
+       da:"Jeg valgte den her sang, fordi jeg godt kan lide musikvideoen.",
+       zh:"我选这首歌，是因为我喜欢它的音乐视频。"}
+    ],
+    [
+      {en:"It is strange, exciting, and very different from other music videos.",
+       da:"Den er mærkelig, spændende og meget anderledes end andre musikvideoer.",
+       zh:"它很奇怪、很刺激，和其他音乐视频很不一样。"},
+      {en:"My favorite part is the fight with the small pink teddy bear.",
+       da:"Min yndlingsdel er kampen med den lille lyserøde bamse.",
+       zh:"我最喜欢的部分是那只粉红色小熊玩偶的打斗。"}
+    ],
+    [
+      {en:"First, look at the teddy bear.",
+       da:"Først skal I kigge på bamsen.",
+       zh:"首先，请看那只玩偶熊。"},
+      {en:"It is small, pink, and looks cute and weak.",
+       da:"Den er lille, lyserød og ser sød og svag ud.",
+       zh:"它又小又粉，看起来可爱又弱小。"},
+      {en:"The other fighter is much bigger and looks very strong.",
+       da:"Den anden kæmper er meget større og ser meget stærk ud.",
+       zh:"另一个对手大得多，看起来非常强壮。"}
+    ],
+    [
+      {en:"We think the teddy bear is going to lose.",
+       da:"Vi tror, at bamsen kommer til at tabe.",
+       zh:"我们都以为玩偶熊会输。"},
+      {en:"But then it gets up again and wins the fight.",
+       da:"Men så rejser den sig op igen og vinder kampen.",
+       zh:"但它又重新站了起来，并且赢得了比赛。"}
+    ],
+    [
+      {en:"I think the teddy bear shows that someone can look weak but still be very strong.",
+       da:"Jeg synes, bamsen viser, at man kan se svag ud og alligevel være meget stærk.",
+       zh:"我觉得这只玩偶熊说明：一个人看起来弱小，但仍然可以很强大。"}
+    ],
+    [
+      {en:"The mood of the video is strange, exciting, and powerful.",
+       da:"Stemningen i videoen er mærkelig, spændende og kraftfuld.",
+       zh:"视频的气氛是奇怪、刺激、有力量的。"},
+      {en:"The message is about finding your strength and fighting back.",
+       da:"Budskabet handler om at finde sin styrke og kæmpe tilbage.",
+       zh:"它想表达的是：找到自己的力量，然后反击。"}
+    ],
+    [
+      {en:"At first, the teddy bear looks weak and has no chance.",
+       da:"I starten ser bamsen svag ud og har ingen chance.",
+       zh:"一开始，玩偶熊看起来很弱，好像根本没有机会。"},
+      {en:"But it does not give up.",
+       da:"Men den giver ikke op.",
+       zh:"但它没有放弃。"},
+      {en:"It gets back up and defeats the much bigger fighter.",
+       da:"Den rejser sig igen og besejrer den meget større kæmper.",
+       zh:"它重新站起来，打败了比它大得多的对手。"}
+    ],
+    [
+      {en:"For me, the message is:",
+       da:"For mig er budskabet:",
+       zh:"对我来说，它想说的是："},
+      {en:"“Even if people think you are weak, you can still be strong.”",
+       da:"“Selvom folk tror, du er svag, kan du stadig være stærk.”",
+       zh:"“即使别人觉得你很弱，你仍然可以很强大。”"}
+    ],
+    [
+      {en:"That is why I think “Radioactive” has a powerful and interesting music video.",
+       da:"Det er derfor, jeg synes, at “Radioactive” har en stærk og interessant musikvideo.",
+       zh:"这就是为什么我认为《Radioactive》的音乐视频既有力量又有意思。"}
+    ]
+  ]
+},
+{
+  id:"im-yours",
+  tab:"I'm Yours",
+  title:"I'm Yours",
+  artist:"Jason Mraz",
+  video:"https://youtu.be/EkHTsc9PU2A?t=17",
+  audio:"im-yours.mp3",
+  accent:"#0f9b95", accent2:"#f2803c", tint:"#e9f4f3",
+  blocks:[
+    [
+      {en:"Hello.",
+       da:"Hej.",
+       zh:"大家好。"},
+      {en:"Today I am presenting the song “I’m Yours” by Jason Mraz.",
+       da:"I dag vil jeg præsentere sangen “I’m Yours” af Jason Mraz.",
+       zh:"今天我要介绍杰森·玛耶兹的歌曲《I’m Yours》。"},
+      {en:"I chose this song because it is calm, happy, and easy to listen to.",
+       da:"Jeg valgte den her sang, fordi den er rolig, glad og nem at lytte til.",
+       zh:"我选这首歌，是因为它安静、轻快，很容易听。"}
+    ],
+    [
+      {en:"I also like the relaxed feeling of the music video.",
+       da:"Jeg kan også godt lide den afslappede stemning i musikvideoen.",
+       zh:"我也喜欢这个音乐视频轻松的感觉。"},
+      {en:"The song is about love, but I think the video is also about enjoying life and being free.",
+       da:"Sangen handler om kærlighed, men jeg synes, videoen også handler om at nyde livet og være fri.",
+       zh:"这首歌讲的是爱，但我觉得视频也在讲享受生活、自由自在。"}
+    ],
+    [
+      {en:"First, look at the nature in the video.",
+       da:"Først skal I kigge på naturen i videoen.",
+       zh:"首先，请看视频里的大自然。"},
+      {en:"We can see the ocean, green trees, blue sky, and beautiful beaches.",
+       da:"Vi kan se havet, grønne træer, blå himmel og smukke strande.",
+       zh:"我们可以看到大海、绿树、蓝天，还有美丽的海滩。"}
+    ],
+    [
+      {en:"The colours are warm and bright.",
+       da:"Farverne er varme og lyse.",
+       zh:"这些颜色温暖又明亮。"},
+      {en:"I think nature shows freedom, peace, and happiness.",
+       da:"Jeg synes, naturen viser frihed, ro og glæde.",
+       zh:"我觉得大自然代表自由、平静和快乐。"},
+      {en:"He is outside, travelling, swimming, and enjoying the world around him.",
+       da:"Han er udenfor, rejser, svømmer og nyder verden omkring sig.",
+       zh:"他在户外旅行、游泳，享受周围的世界。"}
+    ],
+    [
+      {en:"In the video, he leaves his room and goes on a journey.",
+       da:"I videoen forlader han sit værelse og tager ud på en rejse.",
+       zh:"在视频里，他离开自己的房间，开始了一段旅程。"},
+      {en:"He travels to different places and meets different people.",
+       da:"Han rejser til forskellige steder og møder forskellige mennesker.",
+       zh:"他去了不同的地方，遇到了不同的人。"}
+    ],
+    [
+      {en:"I think this shows that he is open to new experiences.",
+       da:"Jeg synes, det viser, at han er åben over for nye oplevelser.",
+       zh:"我觉得这说明他愿意尝试新的体验。"},
+      {en:"He does not worry too much about plans.",
+       da:"Han bekymrer sig ikke så meget om planer.",
+       zh:"他不太在意计划。"},
+      {en:"He just enjoys the moment.",
+       da:"Han nyder bare øjeblikket.",
+       zh:"他只是享受当下。"}
+    ],
+    [
+      {en:"The mood of the video is relaxed, positive, and peaceful.",
+       da:"Stemningen i videoen er afslappet, positiv og fredelig.",
+       zh:"视频的气氛是放松、积极、平静的。"},
+      {en:"The message is about being open to love and enjoying life instead of worrying too much.",
+       da:"Budskabet handler om at være åben over for kærlighed og nyde livet i stedet for at bekymre sig for meget.",
+       zh:"它想说的是：对爱敞开心扉，享受生活，而不是想太多、担心太多。"}
+    ],
+    [
+      {en:"In the video, Jason looks free and happy.",
+       da:"I videoen ser Jason fri og glad ud.",
+       zh:"在视频里，杰森看起来自由又快乐。"},
+      {en:"He spends time in nature, meets people, and enjoys simple things.",
+       da:"Han bruger tid i naturen, møder mennesker og nyder de enkle ting.",
+       zh:"他在大自然里待着，认识新的人，享受简单的事情。"}
+    ],
+    [
+      {en:"For me, the message is:",
+       da:"For mig er budskabet:",
+       zh:"对我来说，它想说的是："},
+      {en:"“Do not worry too much. Be open to life, enjoy the moment, and spend time with people you care about.”",
+       da:"“Bekymr dig ikke for meget. Vær åben over for livet, nyd øjeblikket, og brug tid sammen med de mennesker, du holder af.”",
+       zh:"“不要想太多。对生活敞开心扉，享受当下，多和你在乎的人在一起。”"}
+    ],
+    [
+      {en:"That is why I think “I’m Yours” is a happy and positive song.",
+       da:"Det er derfor, jeg synes, at “I’m Yours” er en glad og positiv sang.",
+       zh:"这就是为什么我认为《I’m Yours》是一首快乐而积极的歌。"}
+    ]
+  ]
+}
+];
+
+/* =================================================================
+   APP
+   ================================================================= */
+var current = 0;
+var flat = [];        // every line of the current song, in speaking order
+var focusIndex = 0;
+var big = false;
+var timings = null;      // [{start,end}] once <song>.json is loaded
+var activeLine = -1;
+var repeat = false;
+var lastUserScroll = 0;
+
+var main = document.getElementById('main');
+var songsEl = document.getElementById('songs');
+var audio = document.getElementById('audio');
+var body = document.body;
+
+/* --- tabs --- */
+DATA.forEach(function(song, i){
+  var b = document.createElement('button');
+  b.className = 'song-tab';
+  b.type = 'button';
+  b.setAttribute('role','tab');
+  b.style.setProperty('--tab-accent', song.accent);
+  var dot = document.createElement('span');
+  dot.className = 'swatch';
+  var label = document.createElement('span');
+  label.textContent = song.tab;
+  b.appendChild(dot);
+  b.appendChild(label);
+  b.onclick = function(){ select(i); };
+  songsEl.appendChild(b);
+});
+
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function select(i){
+  current = i;
+  var s = DATA[i];
+
+  document.documentElement.style.setProperty('--accent', s.accent);
+  document.documentElement.style.setProperty('--accent-2', s.accent2);
+  document.documentElement.style.setProperty('--tint', s.tint);
+  body.classList.add('tinted');
+
+  var tabs = songsEl.children;
+  for (var t = 0; t < tabs.length; t++){
+    tabs[t].setAttribute('aria-selected', t === i ? 'true' : 'false');
+  }
+
+  flat = [];
+  var html = '';
+  html += '<div class="head">';
+  html += '<div class="kicker"><span class="swatch"></span>Track ' + (i+1) + ' of ' + DATA.length + '</div>';
+  html += '<h1>' + esc(s.title) + '</h1>';
+  html += '<p class="artist">' + esc(s.artist) + ' <span class="runtime" id="runtime"></span></p>';
+  html += '<div class="links">';
+  html += '<a class="linkbtn" target="_blank" rel="noopener" href="' + s.video + '"><span class="dot"></span>Watch the video</a>';
+  html += '<button class="linkbtn" type="button" id="startFocus"><span class="dot"></span>Practice line by line</button>';
+  html += '</div></div>';
+
+  html += '<div class="tear"></div>';
+
+  html += '<div class="controls">';
+  html += '<span class="ctl-label">Show</span>';
+  html += '<button class="toggle" type="button" data-lang="da">Dansk</button>';
+  html += '<button class="toggle" type="button" data-lang="zh">中文</button>';
+  html += '<span class="spacer"></span>';
+  html += '<button class="toggle" type="button" id="bigText">Bigger text</button>';
+  html += '</div>';
+
+  html += '<p class="hint">Tap a line to see just that one translated.</p>';
+
+  var n = 0;
+  s.blocks.forEach(function(block){
+    html += '<div class="block">';
+    block.forEach(function(line){
+      n++;
+      flat.push(line);
+      html += '<div class="cue" tabindex="0" role="button" data-i="' + (n-1) + '">';
+      html += '<span class="num">' + (n < 10 ? '0' + n : n) + '</span>';
+      html += '<p class="en">' + esc(line.en) + '</p>';
+      html += '<div class="tr da"><span class="tag">Dansk</span><p>' + esc(line.da) + '</p></div>';
+      html += '<div class="tr zh"><span class="tag">中文</span><p>' + esc(line.zh) + '</p></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  main.innerHTML = html;
+  wireSong();
+  loadAudio(s);
+  loadTimings(s);
+  window.scrollTo(0,0);
+}
+
+function wireSong(){
+  var toggles = main.querySelectorAll('.toggle[data-lang]');
+  for (var i = 0; i < toggles.length; i++){
+    (function(btn){
+      var lang = btn.getAttribute('data-lang');
+      btn.setAttribute('aria-pressed', body.classList.contains('show-' + lang) ? 'true' : 'false');
+      btn.onclick = function(){
+        var on = body.classList.toggle('show-' + lang);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        renderFocus();
+      };
+    })(toggles[i]);
+  }
+
+  var bigBtn = document.getElementById('bigText');
+  bigBtn.setAttribute('aria-pressed', big ? 'true' : 'false');
+  applyBig();
+  bigBtn.onclick = function(){
+    big = !big;
+    bigBtn.setAttribute('aria-pressed', big ? 'true' : 'false');
+    applyBig();
+  };
+
+  document.getElementById('startFocus').onclick = function(){ openFocus(0); };
+
+  var cues = main.querySelectorAll('.cue');
+  for (var c = 0; c < cues.length; c++){
+    (function(cue){
+      cue.onclick = function(){ cue.classList.toggle('open'); };
+      cue.querySelector('.num').onclick = function(e){
+        if (!timings) return;
+        e.stopPropagation();
+        playLine(parseInt(cue.getAttribute('data-i'), 10));
+      };
+      cue.onkeydown = function(e){
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); cue.classList.toggle('open'); }
+      };
+    })(cues[c]);
+  }
+}
+
+function applyBig(){
+  if (big){ document.documentElement.style.setProperty('--cue-size','1.7rem'); }
+  else { document.documentElement.style.removeProperty('--cue-size'); }
+}
+
+/* --- line timings ------------------------------------------------ */
+function loadTimings(song){
+  timings = null;
+  activeLine = -1;
+  body.classList.remove('timed');
+  if (!window.fetch) return;
+  fetch(song.id + '.json', {cache:'no-cache'}).then(function(r){
+    return r.ok ? r.json() : null;
+  }).then(function(j){
+    if (!j || !j.lines) return;
+    if (j.lines.length !== flat.length){
+      console.warn('Timing file has ' + j.lines.length + ' lines, page has ' + flat.length + '. Re-run align.py.');
+      return;
+    }
+    timings = j.lines;
+    body.classList.add('timed');
+  }).catch(function(){ /* no timing file yet — page still works */ });
+}
+
+/* end of a line for playback: the start of the next one, so nothing is clipped */
+function lineEnd(i){
+  if (!timings) return 0;
+  if (i < timings.length - 1) return timings[i+1].start;
+  return timings[i].end + 0.4;
+}
+
+function playLine(i){
+  if (!timings) return;
+  activeLine = -1;
+  audio.currentTime = timings[i].start;
+  audio.play().catch(showAudioError);
+  markActive(i);
+}
+
+function markActive(i){
+  if (i === activeLine) return;
+  activeLine = i;
+  var cues = main.querySelectorAll('.cue');
+  for (var c = 0; c < cues.length; c++){
+    cues[c].classList.toggle('playing', c === i);
+  }
+  if (focusEl.classList.contains('on')){
+    if (i >= 0 && i !== focusIndex){ focusIndex = i; renderFocus(); }
+  } else if (i >= 0 && Date.now() - lastUserScroll > 4000 && !audio.paused){
+    cues[i].scrollIntoView({block:'center', behavior:'smooth'});
+  }
+}
+
+function followAudio(){
+  if (!timings) return;
+  var t = audio.currentTime;
+  if (repeat && activeLine >= 0 && t >= lineEnd(activeLine)){
+    audio.currentTime = timings[activeLine].start;
+    return;
+  }
+  var i = -1;
+  for (var k = 0; k < timings.length; k++){
+    if (t >= timings[k].start - 0.05) i = k; else break;
+  }
+  markActive(i);
+}
+
+window.addEventListener('scroll', function(){ lastUserScroll = Date.now(); }, {passive:true});
+
+document.getElementById('loop').onclick = function(){
+  repeat = !repeat;
+  this.setAttribute('aria-pressed', repeat ? 'true' : 'false');
+};
+
+document.getElementById('repeatSong').onclick = function(){
+  audio.loop = !audio.loop;
+  this.setAttribute('aria-pressed', audio.loop ? 'true' : 'false');
+};
+
+/* --- teleprompter --- */
+var focusEl = document.getElementById('focus');
+var focusEn = document.getElementById('focusEn');
+var focusTr = document.getElementById('focusTr');
+var counter = document.getElementById('counter');
+var bar = document.getElementById('bar');
+
+function openFocus(i){
+  focusIndex = i;
+  focusEl.classList.add('on');
+  renderFocus();
+}
+function closeFocus(){ focusEl.classList.remove('on'); }
+
+function renderFocus(){
+  if (!focusEl.classList.contains('on')) return;
+  var line = flat[focusIndex];
+  focusEn.textContent = line.en;
+  var t = '';
+  if (body.classList.contains('show-da')) t += '<p>' + esc(line.da) + '</p>';
+  if (body.classList.contains('show-zh')) t += '<p class="zh">' + esc(line.zh) + '</p>';
+  focusTr.innerHTML = t;
+  focusTr.style.display = t ? 'block' : 'none';
+  counter.textContent = (focusIndex + 1) + ' / ' + flat.length;
+  bar.style.width = ((focusIndex + 1) / flat.length * 100) + '%';
+  document.getElementById('prev').disabled = focusIndex === 0;
+  document.getElementById('next').textContent = focusIndex === flat.length - 1 ? 'Done' : 'Next';
+}
+
+document.getElementById('prev').onclick = function(){
+  if (focusIndex > 0){ focusIndex--; renderFocus(); }
+};
+document.getElementById('next').onclick = function(){
+  if (focusIndex < flat.length - 1){ focusIndex++; renderFocus(); } else { closeFocus(); }
+};
+document.getElementById('playLine').onclick = function(){ playLine(focusIndex); };
+document.getElementById('closeFocus').onclick = closeFocus;
+document.addEventListener('keydown', function(e){
+  if (!focusEl.classList.contains('on')) return;
+  if (e.key === 'Escape') closeFocus();
+  if (e.key === 'ArrowRight') document.getElementById('next').click();
+  if (e.key === 'ArrowLeft') document.getElementById('prev').click();
+});
+
+/* --- audio --- */
+var playBtn = document.getElementById('play');
+var playIcon = document.getElementById('playIcon').querySelector('path');
+var seek = document.getElementById('seek');
+var atitle = document.getElementById('atitle');
+var curTime = document.getElementById('curTime');
+var durTime = document.getElementById('durTime');
+var speedBtn = document.getElementById('speed');
+var repeatSongBtn = document.getElementById('repeatSong');
+var downloadLink = document.getElementById('download');
+var speeds = [1, 0.75, 0.5, 1.25];
+var speedIdx = 0;
+var seeking = false;
+
+var ICON_PLAY = 'M8 5v14l11-7z';
+var ICON_PAUSE = 'M6 5h4v14H6zm8 0h4v14h-4z';
+
+function fmtTime(s){
+  if (!isFinite(s) || s < 0) s = 0;
+  var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' + sec : sec);
+}
+
+/* duration is only known once the browser has read the file's metadata —
+   with preload="metadata" that happens right after loadAudio(), but the
+   seek bar stays disabled until it actually lands so a drag before then
+   can't silently do nothing. */
+function updateDuration(){
+  if (!isFinite(audio.duration)) return;
+  durTime.textContent = fmtTime(audio.duration);
+  var rt = document.getElementById('runtime');
+  if (rt) rt.textContent = '· ' + fmtTime(audio.duration);
+  seek.disabled = false;
+}
+
+function loadAudio(song){
+  audio.pause();
+  audio.src = song.audio;
+  audio.load();
+  audio.loop = repeatSongBtn.getAttribute('aria-pressed') === 'true';
+  audio.playbackRate = speeds[speedIdx];
+  seek.disabled = true;
+  seek.value = 0;
+  curTime.textContent = '0:00';
+  durTime.textContent = '0:00';
+  atitle.textContent = 'Pronunciation · ' + song.audio;
+  playIcon.setAttribute('d', ICON_PLAY);
+  playBtn.classList.remove('playing');
+  downloadLink.href = song.audio;
+  downloadLink.setAttribute('download', song.title + ' — ' + song.artist + '.mp3');
+}
+
+playBtn.onclick = function(){
+  if (audio.paused){ audio.play().catch(showAudioError); } else { audio.pause(); }
+};
+audio.onplay = function(){ playIcon.setAttribute('d', ICON_PAUSE); playBtn.classList.add('playing'); };
+audio.onpause = function(){ playIcon.setAttribute('d', ICON_PLAY); playBtn.classList.remove('playing'); };
+audio.onended = function(){
+  playIcon.setAttribute('d', ICON_PLAY);
+  playBtn.classList.remove('playing');
+  markActive(-1);
+};
+audio.onloadedmetadata = updateDuration;
+audio.ondurationchange = updateDuration;
+audio.ontimeupdate = function(){
+  if (!seeking && audio.duration){ seek.value = Math.round(audio.currentTime / audio.duration * 1000); }
+  curTime.textContent = fmtTime(audio.currentTime);
+  followAudio();
+};
+audio.onerror = showAudioError;
+
+function showAudioError(){
+  atitle.innerHTML = '<span class="err">No sound file yet — put ' + esc(DATA[current].audio) + ' next to this page.</span>';
+}
+
+seek.oninput = function(){
+  seeking = true;
+  if (audio.duration){ curTime.textContent = fmtTime(seek.value / 1000 * audio.duration); }
+};
+seek.onchange = function(){
+  if (audio.duration){ audio.currentTime = seek.value / 1000 * audio.duration; }
+  seeking = false;
+};
+speedBtn.onclick = function(){
+  speedIdx = (speedIdx + 1) % speeds.length;
+  audio.playbackRate = speeds[speedIdx];
+  speedBtn.textContent = speeds[speedIdx] + '×';
+};
+
+select(0);
+</script>
+</body>
+</html>
